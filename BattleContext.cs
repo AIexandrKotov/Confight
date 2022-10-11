@@ -151,7 +151,7 @@ namespace Confight
                             BattleField[i - 1, j] = Celltype.Dynenemy;
                             BattleField[i, j] = Celltype.Field;
                         }
-                        else Health -= 25;
+                        else Health -= 1;
                     }
 
                     if (BattleField[i, j] == Celltype.EnemyLazer)
@@ -166,10 +166,15 @@ namespace Confight
                                 case Celltype.Lazer:
                                     BattleField[i - 1, j] = Celltype.Field;
                                     CMana += 2;
+                                    EnemyLazerReflectedByLazer += 1;
                                     break;
                             }
                         }
-                        else if (j == PlayerPosition) CMana += 1;
+                        else if (j == PlayerPosition)
+                        {
+                            CMana += 1;
+                            EnemyLazerReflected += 1;
+                        }
                         else Health -= 5;
                         BattleField[i, j] = Celltype.Field;
                     }
@@ -189,7 +194,11 @@ namespace Confight
                         BattleField[i, j] = Celltype.Field;
                         if (i + 1 < width)
                         {
-                            if (BattleField[i + 1, j] == Celltype.Enemy) CMana += 10;
+                            if (BattleField[i + 1, j] == Celltype.Enemy)
+                            {
+                                CMana += 10;
+                                EnemiesKilled += 1;
+                            }
                             BattleField[i + 1, j] = Celltype.Lazer;
                         }
                     }
@@ -212,6 +221,13 @@ namespace Confight
             }
         }
 
+        //STATISTICS
+        public Dictionary<string, int> SpellUsed { get; set; } = new Dictionary<string, int>();
+        public int EnemyLazerReflected { get; set; }
+        public int EnemyLazerReflectedByLazer { get; set; }
+        public int EnemiesKilled { get; set; }
+        public int DynamicEnimiesKilled { get; set; }
+
         public BattleContext()
         {
             BattleField = new Celltype[60, 20];
@@ -224,6 +240,7 @@ namespace Confight
             Spells.Add(new Spell(0, 100, -150, "(A) Cold Heal", Key.A, context => { }));
             Spells.Add(new Spell(0, 150, 0, "(R) Minigun", Key.R, context => context.Minigun()));
             Spells.Add(new Spell(0, 200, 0, "(G) Ultimate", Key.G, context => context.AllLazer()));
+            Spells.Where(x => !string.IsNullOrEmpty(x.TitleWithoutKey)).ForEach(x => SpellUsed[x.TitleWithoutKey] = 0);
         }
     }
 }

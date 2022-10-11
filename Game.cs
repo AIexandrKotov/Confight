@@ -16,6 +16,7 @@ namespace Confight
         public int CManaCost { get; set; }
         public int HealthCost { get; set; }
         public string Title { get; set; }
+        public string TitleWithoutKey { get; set; } = "";
 
         public void Draw(int i, int j)
         {
@@ -49,12 +50,14 @@ namespace Confight
         public Spell(int hm, int cm, int h, string title, byte key, Action<BattleContext> invoke)
         {
             (HManaCost, CManaCost, HealthCost, Title) = (hm, cm, h, title);
+            if (!string.IsNullOrWhiteSpace(title)) TitleWithoutKey = title.ToWords()[1];
             ActiveKey = key;
             Invk = invoke;
         }
 
         public void Invoke(BattleContext context)
         {
+            if (!string.IsNullOrEmpty(Title)) context.SpellUsed[TitleWithoutKey] += 1;
             if (context.HMana >= HManaCost && context.CMana >= CManaCost && context.Health > HealthCost)
             {
                 context.HMana -= HManaCost;
@@ -86,8 +89,21 @@ namespace Confight
             (Reference as Game).Context = new BattleContext();
             var rect = new Rectangle(50, 20, Alignment.CenterWidth | Alignment.CenterHeight);
             var (left, top) = rect.Draw();
-            Console.SetCursorPosition(left + 2, top + 2);
+            var current = top + 2;
+            Console.SetCursorPosition(left + 2, current++);
+            current += 1;
             Console.Write("You are death!");
+
+            Graph.OutText(left + 2, current++, $"Enemies killed: {Context.EnemiesKilled}");
+            Graph.OutText(left + 2, current++, $"Elazers reflected: {Context.EnemyLazerReflected}");
+            Graph.OutText(left + 2, current++, $"Elazers refl by lazer: {Context.EnemyLazerReflectedByLazer}");
+            current++;
+            Graph.OutText(left + 2, current++, "Spells used:");
+            foreach (var x in Context.SpellUsed)
+            {
+                Graph.OutText(left + 2, current++, $"  {x.Key}: {x.Value}");
+            }
+
             Console.SetCursorPosition(left + 2, top + rect.Height - 3);
             Console.Write("Press SPACE to restart");
         }
